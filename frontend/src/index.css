@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Aplicar la fuente Plus Jakarta Sans a toda la app */
+body {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  background-color: #eef1f5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Clase extra para los números de cotización */
+.font-mono {
+  font-family: "DM Mono", monospace;
+}

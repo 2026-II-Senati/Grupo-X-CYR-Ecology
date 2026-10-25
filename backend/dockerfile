@@ -1,0 +1,20 @@
+# Usar una imagen oficial de Node.js ligera
+FROM node:18-alpine
+
+# Crear el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copiar los archivos de dependencias
+COPY package*.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar el resto del código (incluyendo el ca.pem)
+COPY . .
+
+# Exponer el puerto 3000
+EXPOSE 3000
+
+# Comando para iniciar el servidor
+CMD ["npm", "start"]
