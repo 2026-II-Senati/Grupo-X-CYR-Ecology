@@ -17,7 +17,9 @@ const sequelize = new Sequelize(
       ssl: {
         require: true,
         rejectUnauthorized: true,
-        ca: fs.readFileSync(path.join(__dirname, "..", "ca.pem")),
+        ca: process.env.CA_CERT
+          ? process.env.CA_CERT.replace(/\\n/g, "\n")
+          : fs.readFileSync(path.join(__dirname, "..", "ca.pem")),
       },
     },
     logging: false, // Cambiar a console.log para ver el SQL
