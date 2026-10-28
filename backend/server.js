@@ -7,24 +7,32 @@ const authRoutes = require("./routes/authRoutes");
 const clientRoutes = require("./routes/clientRoutes");
 const quotationRoutes = require("./routes/quotationRoutes");
 const saleRoutes = require("./routes/saleRoutes");
-const consultaRoutes = require("./routes/consultaRoutes"); // <-- IMPORTAR
+const consultaRoutes = require("./routes/consultaRoutes");
 
 const app = express();
 
 // ==========================================
-// MIDDLEWARES GLOBALES (DEBEN IR PRIMERO)
+// MIDDLEWARES GLOBALES
 // ==========================================
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://cyr-ecology-fullstack-personal.vercel.app",
+      "http://localhost:5173",
+    ],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // ==========================================
-// RUTAS DE LA API (DESPUÉS DE LOS MIDDLEWARES)
+// RUTAS DE LA API
 // ==========================================
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/quotations", quotationRoutes);
 app.use("/api/sales", saleRoutes);
-app.use("/api/consulta", consultaRoutes); // <-- REGISTRAR AQUÍ
+app.use("/api/consulta", consultaRoutes);
 
 // Ruta de prueba
 app.get("/api/health", (req, res) => {
