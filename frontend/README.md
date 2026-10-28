@@ -1,16 +1,54 @@
-# React + Vite
+# CYR Ecology - Sistema de Gestión Comercial
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Este proyecto es un sistema web Fullstack desarrollado para la empresa **CYR Ecology** (consultoría ambiental). Permite gestionar clientes, cotizaciones, facturación (boletas, facturas y notas de venta) y generar reportes de ventas en tiempo real.
 
-Currently, two official plugins are available:
+## 🚀 Tecnologías Utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Frontend:**
 
-## React Compiler
+- React 18
+- Vite
+- Tailwind CSS
+- React Router DOM
+- Formik & Yup (validación de formularios)
+- Recharts (gráficos)
+- html2pdf.js (generación de PDFs)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Backend:**
 
-## Expanding the Oxlint configuration
+- Node.js
+- Express.js
+- Sequelize (ORM)
+- JSON Web Tokens (JWT) para autenticación
+- bcryptjs (encriptación)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+**Base de Datos:**
+
+- Aiven MySQL (nube) con conexión SSL
+
+**Despliegue:**
+
+- Docker (Backend)
+
+## 📂 Estructura del Proyecto
+
+```text
+cyr-ecology-fullstack/
+├── backend/            # API REST (Node.js + Express + Sequelize)
+│   ├── controllers/    # Lógica de negocio
+│   ├── models/         # Modelos de la base de datos
+│   ├── routes/         # Endpoints de la API
+│   ├── middlewares/    # Seguridad (JWT)
+│   └── config/         # Conexión a MySQL
+├── frontend/           # Interfaz de usuario (React + Vite)
+│   ├── src/
+│   │   ├── api/        # Configuración de Axios
+│   │   ├── components/ # Componentes reutilizables
+│   │   ├── context/    # Contexto de autenticación
+│   │   └── pages/      # Vistas (Dashboard, Cotizador, etc.)
+├── docs/               # Documentación del proyecto
+│   ├── Informe_Final_CYR_Ecology.pdf
+│   └── Informe_Final_CYR_Ecology.docx
+├── README.md
+└── MANUAL_DE_INSTALACION.md
+```
