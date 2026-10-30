@@ -10,12 +10,11 @@ const Clientes = () => {
     direccion: "",
     telefono: "",
     atencion: "",
+    email: "",
   });
   const [tipoDocumento, setTipoDocumento] = useState("RUC");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-
-  // Estado para editar y para la búsqueda
   const [editando, setEditando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
 
@@ -104,6 +103,7 @@ const Clientes = () => {
         direccion: "",
         telefono: "",
         atencion: "",
+        email: "",
       });
       setTipoDocumento("RUC");
       fetchClients();
@@ -124,6 +124,7 @@ const Clientes = () => {
       direccion: cliente.direccion || "",
       telefono: cliente.telefono || "",
       atencion: cliente.atencion || "",
+      email: cliente.email || "",
     });
     setEditando(true);
     setMessage("");
@@ -158,17 +159,89 @@ const Clientes = () => {
       direccion: "",
       telefono: "",
       atencion: "",
+      email: "",
     });
     setEditando(false);
     setTipoDocumento("RUC");
     setMessage("");
   };
 
-  // Filtrado de clientes en tiempo real
+  // ================= EXPORTAR CLIENTES A CSV =================
+  const exportarClientes = () => {
+    if (clients.length === 0) {
+      alert("No hay clientes para exportar.");
+      return;
+    }
+
+    const headers = [
+      "ruc",
+      "razonSocial",
+      "direccion",
+      "telefono",
+      "atencion",
+      "email",
+    ];
+    const rows = clients.map((c) => [
+      c.ruc,
+      c.razonSocial,
+      c.direccion || "",
+      c.telefono || "",
+      c.atencion || "",
+      c.email || "",
+    ]);
+
+    let csvContent = headers.join(",") + "\n";
+    rows.forEach((row) => {
+      csvContent += row.map((val) => `"${val}"`).join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute(
+      "download",
+      `Clientes_CYR_${new Date().toISOString().split("T")[0]}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // ================= IMPORTAR CLIENTES DESDE CSV =================
+  const importarClientes = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setLoading(true);
+    setMessage("");
+    try {
+      const res = await axiosClient.post("/clients/import", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setMessage(
+        `Importación completada: ${res.data.inserted} insertados, ${res.data.errors} errores.`,
+      );
+      fetchClients();
+    } catch (error) {
+      setMessage(
+        error.response?.data?.message || "Error al importar clientes.",
+      );
+    } finally {
+      setLoading(false);
+      e.target.value = ""; // Limpiar el input
+    }
+  };
+
+  // Filtrado de clientes en tiempo real (incluye búsqueda por email)
   const clientesFiltrados = clients.filter(
     (c) =>
       c.razonSocial.toLowerCase().includes(busqueda.toLowerCase()) ||
-      c.ruc.includes(busqueda),
+      c.ruc.includes(busqueda) ||
+      (c.email && c.email.toLowerCase().includes(busqueda.toLowerCase())),
   );
 
   return (
@@ -186,7 +259,13 @@ const Clientes = () => {
 
           {message && (
             <div
-              className={`p-3 rounded mb-4 text-sm font-bold ${message.includes("exitosamente") || message.includes("cargados") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+              className={`p-3 rounded mb-4 text-sm font-bold ${
+                message.includes("exitosamente") ||
+                message.includes("cargados") ||
+                message.includes("completada")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
             >
               {message}
             </div>
@@ -199,7 +278,11 @@ const Clientes = () => {
                   setTipoDocumento("RUC");
                   setForm({ ...form, ruc: "" });
                 }}
-                className={`px-3 py-1 rounded text-xs font-bold transition-colors ${tipoDocumento === "RUC" ? "bg-green-700 text-white" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
+                className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+                  tipoDocumento === "RUC"
+                    ? "bg-green-700 text-white"
+                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                }`}
               >
                 RUC (11 dígitos)
               </button>
@@ -208,7 +291,11 @@ const Clientes = () => {
                   setTipoDocumento("DNI");
                   setForm({ ...form, ruc: "" });
                 }}
-                className={`px-3 py-1 rounded text-xs font-bold transition-colors ${tipoDocumento === "DNI" ? "bg-green-700 text-white" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
+                className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+                  tipoDocumento === "DNI"
+                    ? "bg-green-700 text-white"
+                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                }`}
               >
                 DNI (8 dígitos)
               </button>
@@ -234,7 +321,9 @@ const Clientes = () => {
                     });
                   }}
                   disabled={editando}
-                  className={`w-full border p-2 rounded focus:border-green-500 outline-none ${editando ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                  className={`w-full border p-2 rounded focus:border-green-500 outline-none ${
+                    editando ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
                   placeholder={
                     tipoDocumento === "RUC" ? "20455892938" : "12345678"
                   }
@@ -269,6 +358,20 @@ const Clientes = () => {
                 placeholder={
                   tipoDocumento === "RUC" ? "CYR ECOLOGY S.A.C." : "Juan Pérez"
                 }
+              />
+            </div>
+
+            {/* CAMPO EMAIL */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">
+                Correo Electrónico
+              </label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full border p-2 rounded focus:border-green-500 outline-none"
+                placeholder="cliente@correo.com"
               />
             </div>
 
@@ -359,18 +462,37 @@ const Clientes = () => {
             </h2>
           </div>
 
+          {/* BOTONES DE EXPORTAR / IMPORTAR */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={exportarClientes}
+              className="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 text-sm"
+            >
+              📤 Exportar CSV
+            </button>
+            <label className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 text-sm cursor-pointer text-center">
+              📥 Importar CSV
+              <input
+                type="file"
+                accept=".csv"
+                onChange={importarClientes}
+                className="hidden"
+              />
+            </label>
+          </div>
+
           {/* BARRA DE BÚSQUEDA */}
           <div className="mb-4">
             <input
               type="text"
-              placeholder="🔍 Buscar por RUC/DNI o Razón Social..."
+              placeholder="🔍 Buscar por RUC/DNI, Razón Social o Email..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="w-full border p-2 rounded-lg focus:border-green-500 outline-none bg-gray-50"
             />
           </div>
 
-          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
             {clientesFiltrados.map((c) => (
               <div
                 key={c.ruc}
@@ -383,6 +505,11 @@ const Clientes = () => {
                   <p className="text-xs text-gray-500 font-mono">
                     Doc: {c.ruc}
                   </p>
+                  {c.email && (
+                    <p className="text-xs text-blue-500 truncate">
+                      ✉ {c.email}
+                    </p>
+                  )}
                   {c.direccion && (
                     <p className="text-xs text-gray-400 truncate">
                       {c.direccion}

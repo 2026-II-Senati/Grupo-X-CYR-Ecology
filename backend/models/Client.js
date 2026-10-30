@@ -8,6 +8,7 @@ const Client = sequelize.define("Client", {
   direccion: { type: DataTypes.STRING },
   telefono: { type: DataTypes.STRING },
   atencion: { type: DataTypes.STRING },
+  email: { type: DataTypes.STRING }, // <-- ESTA LÍNEA ES VITAL
 });
 
 module.exports = Client;

@@ -9,6 +9,7 @@ const createQuotation = async (req, res) => {
     const {
       id,
       fecha,
+      hora,
       moneda,
       descuento,
       incluyeIgv,
@@ -34,6 +35,7 @@ const createQuotation = async (req, res) => {
       {
         id,
         fecha,
+        hora,
         moneda,
         descuento,
         incluyeIgv,
@@ -78,7 +80,7 @@ const getQuotations = async (req, res) => {
         { model: QuotationItem, as: "items" },
         { model: Sale, as: "venta" },
       ],
-      order: [["fecha", "DESC"]],
+      order: [["id", "DESC"]], // <-- ORDEN POR NÚMERO DE COTIZACIÓN
     });
     res.json(quotations);
   } catch (error) {

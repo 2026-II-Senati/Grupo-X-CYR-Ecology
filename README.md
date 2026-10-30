@@ -21,6 +21,8 @@ Este proyecto es un sistema web Fullstack desarrollado para la empresa **CYR Eco
 - Sequelize (ORM)
 - JSON Web Tokens (JWT) para autenticación
 - bcryptjs (encriptación)
+- Multer (subida de archivos)
+- csv-parser (procesamiento de CSV)
 
 **Base de Datos:**
 
@@ -39,7 +41,8 @@ cyr-ecology-fullstack/
 │   ├── models/         # Modelos de la base de datos
 │   ├── routes/         # Endpoints de la API
 │   ├── middlewares/    # Seguridad (JWT)
-│   └── config/         # Conexión a MySQL
+│   ├── config/         # Conexión a MySQL
+│   └── uploads/        # Archivos temporales (CSV)
 ├── frontend/           # Interfaz de usuario (React + Vite)
 │   ├── src/
 │   │   ├── api/        # Configuración de Axios

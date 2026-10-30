@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import PdfGenerator from "../components/PdfGenerator";
+import DocumentoPDF from "../components/DocumentoPDF";
 
 const UNITS = [
   "UND",
@@ -22,8 +23,23 @@ const UNITS = [
 ];
 
 const Cotizador = () => {
+  // Función para obtener la fecha local en formato YYYY-MM-DD (evita el desfase de UTC)
+  const getLocalDate = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const [quoteNumber, setQuoteNumber] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(getLocalDate()); // <-- FECHA LOCAL CORREGIDA
+  const [time, setTime] = useState(
+    new Date().toLocaleTimeString("es-PE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  ); // <-- NUEVO ESTADO DE HORA
   const [currency, setCurrency] = useState("S/");
   const [discount, setDiscount] = useState(0);
   const [includeIgv, setIncludeIgv] = useState(true);
@@ -106,7 +122,6 @@ const Cotizador = () => {
   const buscarDocumento = (numero) => {
     if (!numero || numero.length < 8) return;
 
-    // Buscar en la base de datos local
     const clienteLocal = listaClientes.find((c) => c.ruc === numero);
     if (clienteLocal) {
       setClient({
@@ -146,6 +161,7 @@ const Cotizador = () => {
       const payload = {
         id: `CYRE-${quoteNumber}`,
         fecha: date,
+        hora: time, // <-- NUEVO CAMPO
         moneda: currency,
         descuento: discount,
         incluyeIgv: includeIgv,
@@ -170,6 +186,7 @@ const Cotizador = () => {
       setCotizacionParaPdf({
         id: `CYRE-${quoteNumber}`,
         fecha: date,
+        hora: time, // <-- NUEVO CAMPO
         subtotal: subtotal,
         descuento: discount,
         igv: igvAmount,
@@ -207,7 +224,9 @@ const Cotizador = () => {
           <h2 className="text-lg font-bold text-gray-800 mb-4">
             Datos Generales
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
+            {" "}
+            {/* Cambiado a 3 columnas para la hora */}
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase">
                 N° Cotización
@@ -230,6 +249,19 @@ const Cotizador = () => {
                 className="w-full border p-2 rounded mt-1"
               />
             </div>
+            <div>
+              {" "}
+              {/* NUEVO CAMPO HORA */}
+              <label className="text-xs font-bold text-gray-500 uppercase">
+                Hora
+              </label>
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full border p-2 rounded mt-1"
+              />
+            </div>
           </div>
         </div>
 
@@ -239,7 +271,6 @@ const Cotizador = () => {
           </h2>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
-              {/* RUC / DNI: Solo números, sin búsqueda automática */}
               <input
                 type="text"
                 placeholder="RUC / DNI"
@@ -252,7 +283,6 @@ const Cotizador = () => {
                 }}
                 className="border p-2 rounded"
               />
-
               <div className="relative">
                 <input
                   type="text"
@@ -285,7 +315,6 @@ const Cotizador = () => {
               className="w-full border p-2 rounded"
             />
             <div className="grid grid-cols-2 gap-4">
-              {/* Teléfono: Solo números */}
               <input
                 type="text"
                 placeholder="Teléfono"
@@ -298,8 +327,6 @@ const Cotizador = () => {
                 }
                 className="border p-2 rounded"
               />
-
-              {/* Atención a: Solo letras y espacios */}
               <input
                 type="text"
                 placeholder="Atención a"
@@ -444,152 +471,34 @@ const Cotizador = () => {
         </div>
       </div>
 
-      {/* SECCIÓN DERECHA: VISTA PREVIA A4 */}
+      {/* SECCIÓN DERECHA: VISTA PREVIA CON EL NUEVO COMPONENTE */}
       <div className="w-full md:w-1/2 bg-gray-200 rounded-xl overflow-hidden flex flex-col">
         <div className="bg-gray-800 text-white p-2 text-center text-sm font-bold">
           Vista Previa (A4)
         </div>
-        <div className="flex-1 overflow-y-auto p-4 flex justify-center">
-          <div
-            className="bg-white shadow-xl"
-            style={{
-              width: "210mm",
-              minHeight: "297mm",
-              padding: "10mm",
-              boxSizing: "border-box",
-            }}
-          >
-            {/* Cabecera PDF */}
-            <div className="flex justify-between border-b-4 border-green-700 pb-4 mb-6">
-              <div>
-                <h1 className="text-3xl font-black text-green-800">
-                  CYR ECOLOGY
-                </h1>
-                <p className="text-xs text-gray-600 mt-1">RUC: 20455892938</p>
-                <p className="text-xs text-gray-600">Arequipa, Perú</p>
-              </div>
-              <div className="text-right">
-                <div className="bg-green-700 text-white px-4 py-1 rounded-t font-bold">
-                  COTIZACIÓN
-                </div>
-                <div className="border-2 border-green-700 p-2 bg-green-50">
-                  <p className="font-mono text-xl font-black text-gray-800">
-                    CYRE-{quoteNumber}
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    {date.split("-").reverse().join("/")}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Cliente PDF */}
-            <div className="border border-green-200 p-3 rounded bg-green-50/50 mb-6 text-sm">
-              <div className="grid grid-cols-2 gap-2">
-                <p>
-                  <strong className="text-gray-500">Cliente:</strong>{" "}
-                  {client.razonSocial || "---"}
-                </p>
-                <p>
-                  <strong className="text-gray-500">RUC/DNI:</strong>{" "}
-                  {client.ruc || "---"}
-                </p>
-                <p>
-                  <strong className="text-gray-500">Dirección:</strong>{" "}
-                  {client.direccion || "---"}
-                </p>
-                <p>
-                  <strong className="text-gray-500">Atención:</strong>{" "}
-                  {client.atencion || "---"}
-                </p>
-              </div>
-            </div>
-
-            {/* Tabla PDF */}
-            <table className="w-full text-sm mb-6 border-collapse">
-              <thead>
-                <tr className="bg-green-700 text-white text-left">
-                  <th className="p-2 border border-green-700 text-center">
-                    N°
-                  </th>
-                  <th className="p-2 border border-green-700 text-center">
-                    Cant.
-                  </th>
-                  <th className="p-2 border border-green-700 text-center">
-                    Unid.
-                  </th>
-                  <th className="p-2 border border-green-700">Descripción</th>
-                  <th className="p-2 border border-green-700 text-right">
-                    P. Unit.
-                  </th>
-                  <th className="p-2 border border-green-700 text-right">
-                    Total
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, idx) => (
-                  <tr key={item.id} className="border-b border-gray-200">
-                    <td className="p-2 border border-gray-200 text-center">
-                      {idx + 1}
-                    </td>
-                    <td className="p-2 border border-gray-200 text-center">
-                      {item.cant}
-                    </td>
-                    <td className="p-2 border border-gray-200 text-center">
-                      {item.unit}
-                    </td>
-                    <td className="p-2 border border-gray-200">{item.desc}</td>
-                    <td className="p-2 border border-gray-200 text-right font-mono">
-                      {(parseFloat(item.price) || 0).toFixed(2)}
-                    </td>
-                    <td className="p-2 border border-gray-200 text-right font-mono">
-                      {(
-                        (parseFloat(item.cant) || 0) *
-                        (parseFloat(item.price) || 0)
-                      ).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Totales PDF */}
-            <div className="flex justify-end mb-10">
-              <div className="w-1/2 border border-green-700 rounded p-3 bg-white">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-500">Subtotal:</span>{" "}
-                  <span className="font-mono">
-                    {currency} {subtotal.toFixed(2)}
-                  </span>
-                </div>
-                {parseFloat(discount) > 0 && (
-                  <div className="flex justify-between text-sm mb-1 text-red-600">
-                    <span>Descuento ({discount}%):</span>{" "}
-                    <span className="font-mono">
-                      -{currency} {discountAmount.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-500">IGV (18%):</span>{" "}
-                  <span className="font-mono">
-                    {currency} {igvAmount.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-lg font-black text-green-800 border-t-2 border-green-700 pt-2 mt-2">
-                  <span>TOTAL:</span>{" "}
-                  <span className="font-mono">
-                    {currency} {total.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="flex-1 overflow-auto p-4 flex justify-center">
+          <DocumentoPDF
+            tipoDocumento="COTIZACIÓN"
+            numeroDocumento={`CYRE-${quoteNumber}`}
+            fecha={date.split("-").reverse().join("/")}
+            hora={time} // <-- PASAMOS LA HORA AL PDF
+            cliente={client}
+            items={items.map((i) => ({
+              ...i,
+              descripcion: i.desc,
+              precioUnitario: i.price,
+            }))}
+            subtotal={subtotal}
+            descuento={discountAmount}
+            igv={igvAmount}
+            total={total}
+            logoUrl={null}
+            firmaUrl={null}
+          />
         </div>
       </div>
 
-      {/* Generador de PDF invisible */}
+      {/* Generador de PDF invisible para la descarga automática */}
       {cotizacionParaPdf && (
         <PdfGenerator cotizacion={cotizacionParaPdf} autoDownload={true} />
       )}

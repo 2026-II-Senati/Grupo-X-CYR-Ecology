@@ -6,6 +6,8 @@ import PdfGenerator from "../components/PdfGenerator";
 const Historial = () => {
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("activas"); // "activas", "todas", "facturadas"
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +34,30 @@ const Historial = () => {
     }
   };
 
+  // Filtrado por búsqueda y por estado
+  const filteredQuotations = quotations.filter((q) => {
+    // 1. Filtro de búsqueda
+    const searchLower = searchTerm.toLowerCase();
+    const matchId = (q.id || "").toLowerCase().includes(searchLower);
+    const matchRuc = (q.cliente?.ruc || "").includes(searchTerm);
+    const matchRazonSocial = (q.cliente?.razonSocial || "")
+      .toLowerCase()
+      .includes(searchLower);
+    const matchBusqueda = matchId || matchRuc || matchRazonSocial;
+
+    // 2. Filtro de estado (simplificado a tu flujo real)
+    let matchEstado = true;
+    if (filtroEstado === "activas") {
+      // Activas = Aceptadas que aún NO se han facturado
+      matchEstado = q.estado === "accepted" && !q.venta;
+    } else if (filtroEstado === "facturadas") {
+      // Solo las que ya tienen una venta asociada
+      matchEstado = !!q.venta;
+    }
+
+    return matchBusqueda && matchEstado;
+  });
+
   if (loading) return <div className="p-10">Cargando historial...</div>;
 
   return (
@@ -40,12 +66,34 @@ const Historial = () => {
         Historial de Cotizaciones
       </h1>
 
+      <div className="flex flex-col md:flex-row gap-4 mb-4">
+        {/* BARRA DE BÚSQUEDA */}
+        <input
+          type="text"
+          placeholder="🔍 Buscar por N° Cotización, RUC/DNI o Razón Social..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-2/3 border p-3 rounded-lg shadow-sm outline-none focus:border-green-500 bg-white"
+        />
+
+        {/* FILTRO POR ESTADO */}
+        <select
+          value={filtroEstado}
+          onChange={(e) => setFiltroEstado(e.target.value)}
+          className="w-full md:w-1/3 border p-3 rounded-lg shadow-sm outline-none focus:border-green-500 bg-white font-bold text-gray-700"
+        >
+          <option value="activas">🟢 Por Facturar</option>
+          <option value="todas">📋 Todas las cotizaciones</option>
+          <option value="facturadas">✅ Solo Facturadas</option>
+        </select>
+      </div>
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-green-700 text-white text-sm">
               <th className="p-3 border-b">N° Cotización</th>
-              <th className="p-3 border-b">Fecha</th>
+              <th className="p-3 border-b">Fecha y Hora</th>
               <th className="p-3 border-b">Cliente</th>
               <th className="p-3 border-b text-right">Total</th>
               <th className="p-3 border-b text-center">Estado</th>
@@ -53,13 +101,16 @@ const Historial = () => {
             </tr>
           </thead>
           <tbody>
-            {quotations.map((q) => (
+            {filteredQuotations.map((q) => (
               <tr key={q.id} className="hover:bg-gray-50 text-sm">
                 <td className="p-3 border-b font-mono font-bold text-green-700">
                   {q.id}
                 </td>
                 <td className="p-3 border-b">
                   {q.fecha.split("-").reverse().join("/")}
+                  {q.hora && (
+                    <span className="text-gray-500 text-xs ml-2">{q.hora}</span>
+                  )}
                 </td>
                 <td className="p-3 border-b">
                   {q.cliente?.razonSocial || "N/A"}
@@ -72,47 +123,21 @@ const Historial = () => {
                 <td className="p-3 border-b text-center">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-bold ${
-                      q.estado === "accepted"
-                        ? "bg-green-100 text-green-700"
-                        : q.estado === "rejected"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
+                      q.venta
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
                     }`}
                   >
-                    {q.estado === "accepted"
-                      ? "Aceptada"
-                      : q.estado === "rejected"
-                        ? "Rechazada"
-                        : "Pendiente"}
+                    {q.venta ? "Facturada" : "Aceptada"}
                   </span>
                 </td>
 
                 {/* ACCIONES */}
                 <td className="p-3 border-b">
                   <div className="flex items-center justify-center gap-2">
-                    {/* 1. Botón PDF (Siempre visible) */}
                     <PdfGenerator cotizacion={q} />
 
-                    {/* 2. Si está Pendiente: Mostrar Aceptar y Rechazar */}
-                    {q.estado === "pending" && (
-                      <>
-                        <button
-                          onClick={() => updateStatus(q.id, "accepted")}
-                          className="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-green-700"
-                        >
-                          Aceptar
-                        </button>
-                        <button
-                          onClick={() => updateStatus(q.id, "rejected")}
-                          className="bg-red-100 text-red-600 px-3 py-1 rounded text-xs font-bold hover:bg-red-200"
-                        >
-                          Rechazar
-                        </button>
-                      </>
-                    )}
-
-                    {/* 3. Si está Aceptada Y NO tiene venta: Mostrar Facturar */}
-                    {q.estado === "accepted" && !q.venta && (
+                    {!q.venta && (
                       <button
                         onClick={() => navigate(`/ventas?quotationId=${q.id}`)}
                         className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-blue-700"
@@ -121,20 +146,22 @@ const Historial = () => {
                       </button>
                     )}
 
-                    {/* 4. Si ya tiene venta (fue facturada), mostrar un texto o nada */}
-                    {q.estado === "accepted" && q.venta && (
-                      <span className="text-xs text-gray-400 font-bold bg-gray-100 px-2 py-1 rounded">
-                        Facturada
+                    {q.venta && (
+                      <span className="text-xs text-blue-500 font-bold bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                        ✔ Ya facturada
                       </span>
                     )}
                   </div>
                 </td>
               </tr>
             ))}
-            {quotations.length === 0 && (
+
+            {filteredQuotations.length === 0 && (
               <tr>
                 <td colSpan="6" className="p-6 text-center text-gray-500">
-                  No hay cotizaciones registradas aún.
+                  {searchTerm
+                    ? `No se encontraron resultados para "${searchTerm}"`
+                    : "No hay cotizaciones que coincidan con el filtro."}
                 </td>
               </tr>
             )}
