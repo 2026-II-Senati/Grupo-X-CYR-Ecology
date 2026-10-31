@@ -55,3 +55,5 @@ cyr-ecology-fullstack/
 ├── README.md
 └── MANUAL_DE_INSTALACION.md
 ```
+
+Encargado: Cristhian Torres Claverias
