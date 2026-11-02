@@ -4,15 +4,15 @@ const DocumentoPDF = ({
   tipoDocumento = "COTIZACIÓN",
   numeroDocumento = "CYRE-00000000",
   fecha = "",
-  hora = "", // <-- NUEVO PARÁMETRO
+  hora = "",
   cliente = {},
   items = [],
   subtotal = 0,
   descuento = 0,
   igv = 0,
   total = 0,
-  logoUrl = null,
-  firmaUrl = null,
+  logoUrl = "/logo.jpeg", // <-- VALOR POR DEFECTO CORREGIDO
+  firmaUrl = "/firma.jpeg", // <-- VALOR POR DEFECTO CORREGIDO
 }) => {
   return (
     <div
@@ -20,13 +20,13 @@ const DocumentoPDF = ({
       style={{
         width: "210mm",
         minHeight: "297mm",
-        maxHeight: "297mm", // <-- NUEVO: Fuerza a que no crezca más de una hoja
-        padding: "10mm 15mm", // <-- Reducir un poco el padding (antes era 15mm)
+        maxHeight: "297mm",
+        padding: "10mm 15mm",
         boxSizing: "border-box",
         fontFamily: "Arial, sans-serif",
-        overflow: "hidden", // <-- NUEVO: Evita que el contenido se desborde
-        display: "flex", // <-- NUEVO: Para organizar el contenido
-        flexDirection: "column", // <-- NUEVO
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* CABECERA */}
@@ -57,8 +57,7 @@ const DocumentoPDF = ({
             <p className="font-mono text-lg font-bold">{numeroDocumento}</p>
           </div>
           <p className="text-xs mt-2">Fecha: {fecha}</p>
-          <p className="text-xs">Hora: {hora || "—"}</p>{" "}
-          {/* <-- MOSTRAR HORA */}
+          <p className="text-xs">Hora: {hora || "—"}</p>
         </div>
       </div>
 
@@ -182,13 +181,13 @@ const DocumentoPDF = ({
 
       {/* FIRMA */}
       <div className="w-64" style={{ marginTop: "auto" }}>
-        {" "}
-        {/* <-- Empuja la firma al fondo */}
         <div className="h-16 flex items-end justify-center mb-1">
-          {" "}
-          {/* <-- Reducir de h-24 a h-16 */}
           {firmaUrl ? (
-            <img src={firmaUrl} alt="Firma" className="max-h-full" />
+            <img
+              src={firmaUrl}
+              alt="Firma"
+              className="max-h-full object-contain"
+            />
           ) : (
             <span className="text-gray-400 text-sm">[Firma]</span>
           )}
