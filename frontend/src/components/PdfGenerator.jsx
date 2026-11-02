@@ -10,11 +10,18 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
     if (!element) return;
 
     const opt = {
-      margin: 0,
+      margin: [10, 10, 10, 10],
       filename: `Cotizacion-${cotizacion.id}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        windowWidth: 1200,
+        scrollX: 0,
+        scrollY: 0,
+      },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
     };
 
     html2pdf().set(opt).from(element).save();
@@ -24,7 +31,7 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
     if (autoDownload) {
       const timer = setTimeout(() => {
         generatePDF();
-      }, 500);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [autoDownload, cotizacion]);
@@ -48,17 +55,25 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
           opacity: 0,
           pointerEvents: "none",
           zIndex: -1,
-          width: "210mm",
-          height: "297mm",
           overflow: "hidden",
         }}
       >
-        <div ref={pdfRef}>
+        <div
+          ref={pdfRef}
+          style={{
+            width: "190mm",
+            // QUITAMOS minHeight aquí para que el contenido fluya
+            backgroundColor: "white",
+            display: "flex",
+            flexDirection: "column",
+            margin: "0 auto",
+          }}
+        >
           <DocumentoPDF
             tipoDocumento="COTIZACIÓN"
             numeroDocumento={cotizacion.id}
             fecha={cotizacion.fecha?.split("-").reverse().join("/")}
-            hora={cotizacion.hora} // <-- PASAMOS LA HORA
+            hora={cotizacion.hora}
             cliente={cotizacion.cliente || {}}
             items={cotizacion.items || []}
             subtotal={cotizacion.subtotal}
@@ -69,8 +84,8 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
             }
             igv={cotizacion.igv}
             total={cotizacion.total}
-            logoUrl={null}
-            firmaUrl={null}
+            logoUrl="/logo.jpeg"
+            firmaUrl="/firma.jpeg"
           />
         </div>
       </div>
