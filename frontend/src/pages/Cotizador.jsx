@@ -492,8 +492,8 @@ const Cotizador = () => {
             descuento={discountAmount}
             igv={igvAmount}
             total={total}
-            logoUrl={null}
-            firmaUrl={null}
+            logoUrl="/logo.jpeg"
+            firmaUrl="/firma.jpeg"
           />
         </div>
       </div>

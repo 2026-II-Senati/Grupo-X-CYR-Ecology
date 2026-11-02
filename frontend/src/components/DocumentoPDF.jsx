@@ -20,9 +20,13 @@ const DocumentoPDF = ({
       style={{
         width: "210mm",
         minHeight: "297mm",
-        padding: "15mm",
+        maxHeight: "297mm", // <-- NUEVO: Fuerza a que no crezca más de una hoja
+        padding: "10mm 15mm", // <-- Reducir un poco el padding (antes era 15mm)
         boxSizing: "border-box",
         fontFamily: "Arial, sans-serif",
+        overflow: "hidden", // <-- NUEVO: Evita que el contenido se desborde
+        display: "flex", // <-- NUEVO: Para organizar el contenido
+        flexDirection: "column", // <-- NUEVO
       }}
     >
       {/* CABECERA */}
@@ -177,8 +181,12 @@ const DocumentoPDF = ({
       </div>
 
       {/* FIRMA */}
-      <div className="w-64">
-        <div className="h-24 flex items-end justify-center mb-2">
+      <div className="w-64" style={{ marginTop: "auto" }}>
+        {" "}
+        {/* <-- Empuja la firma al fondo */}
+        <div className="h-16 flex items-end justify-center mb-1">
+          {" "}
+          {/* <-- Reducir de h-24 a h-16 */}
           {firmaUrl ? (
             <img src={firmaUrl} alt="Firma" className="max-h-full" />
           ) : (

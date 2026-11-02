@@ -15,6 +15,7 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] }, // <-- EVITA CORTES
     };
 
     html2pdf().set(opt).from(element).save();
@@ -24,7 +25,7 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
     if (autoDownload) {
       const timer = setTimeout(() => {
         generatePDF();
-      }, 500);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [autoDownload, cotizacion]);
@@ -53,12 +54,21 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
           overflow: "hidden",
         }}
       >
-        <div ref={pdfRef}>
+        <div
+          ref={pdfRef}
+          style={{
+            width: "210mm",
+            height: "297mm", // <-- ALTURA FIJA (no minHeight)
+            padding: "10mm 15mm", // <-- PADDING REDUCIDO
+            boxSizing: "border-box",
+            overflow: "hidden",
+          }}
+        >
           <DocumentoPDF
             tipoDocumento="COTIZACIÓN"
             numeroDocumento={cotizacion.id}
             fecha={cotizacion.fecha?.split("-").reverse().join("/")}
-            hora={cotizacion.hora} // <-- PASAMOS LA HORA
+            hora={cotizacion.hora}
             cliente={cotizacion.cliente || {}}
             items={cotizacion.items || []}
             subtotal={cotizacion.subtotal}
@@ -69,8 +79,8 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
             }
             igv={cotizacion.igv}
             total={cotizacion.total}
-            logoUrl={null}
-            firmaUrl={null}
+            logoUrl="/logo.jpeg"
+            firmaUrl="/firma.jpeg"
           />
         </div>
       </div>
