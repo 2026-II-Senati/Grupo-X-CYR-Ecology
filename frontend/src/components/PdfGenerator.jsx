@@ -10,12 +10,18 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
     if (!element) return;
 
     const opt = {
-      margin: 0,
+      margin: [10, 10, 10, 10],
       filename: `Cotizacion-${cotizacion.id}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        windowWidth: 1200,
+        scrollX: 0,
+        scrollY: 0,
+      },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] }, // <-- EVITA CORTES
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
     };
 
     html2pdf().set(opt).from(element).save();
@@ -49,19 +55,18 @@ const PdfGenerator = ({ cotizacion, autoDownload = false }) => {
           opacity: 0,
           pointerEvents: "none",
           zIndex: -1,
-          width: "210mm",
-          height: "297mm",
           overflow: "hidden",
         }}
       >
         <div
           ref={pdfRef}
           style={{
-            width: "210mm",
-            height: "297mm", // <-- ALTURA FIJA (no minHeight)
-            padding: "10mm 15mm", // <-- PADDING REDUCIDO
-            boxSizing: "border-box",
-            overflow: "hidden",
+            width: "190mm",
+            // QUITAMOS minHeight aquí para que el contenido fluya
+            backgroundColor: "white",
+            display: "flex",
+            flexDirection: "column",
+            margin: "0 auto",
           }}
         >
           <DocumentoPDF

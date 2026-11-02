@@ -23,7 +23,7 @@ const UNITS = [
 ];
 
 const Cotizador = () => {
-  // Función para obtener la fecha local en formato YYYY-MM-DD (evita el desfase de UTC)
+  // Función para obtener la fecha local (YYYY-MM-DD)
   const getLocalDate = () => {
     const d = new Date();
     const year = d.getFullYear();
@@ -32,14 +32,17 @@ const Cotizador = () => {
     return `${year}-${month}-${day}`;
   };
 
+  // Función para obtener la hora local en formato 24H (HH:mm) - ¡AQUÍ ESTÁ LA CORRECCIÓN!
+  const getLocalTime = () => {
+    const d = new Date();
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
+
   const [quoteNumber, setQuoteNumber] = useState("");
-  const [date, setDate] = useState(getLocalDate()); // <-- FECHA LOCAL CORREGIDA
-  const [time, setTime] = useState(
-    new Date().toLocaleTimeString("es-PE", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  ); // <-- NUEVO ESTADO DE HORA
+  const [date, setDate] = useState(getLocalDate());
+  const [time, setTime] = useState(getLocalTime()); // <-- AHORA USA EL FORMATO 24H
   const [currency, setCurrency] = useState("S/");
   const [discount, setDiscount] = useState(0);
   const [includeIgv, setIncludeIgv] = useState(true);
@@ -118,7 +121,7 @@ const Cotizador = () => {
     );
   const removeItem = (id) => setItems(items.filter((item) => item.id !== id));
 
-  // Autocompletado (Solo desde la base de datos local)
+  // Autocompletado
   const buscarDocumento = (numero) => {
     if (!numero || numero.length < 8) return;
 
@@ -161,7 +164,7 @@ const Cotizador = () => {
       const payload = {
         id: `CYRE-${quoteNumber}`,
         fecha: date,
-        hora: time, // <-- NUEVO CAMPO
+        hora: time, // <-- SE ENVÍA EN FORMATO 24H
         moneda: currency,
         descuento: discount,
         incluyeIgv: includeIgv,
@@ -186,7 +189,7 @@ const Cotizador = () => {
       setCotizacionParaPdf({
         id: `CYRE-${quoteNumber}`,
         fecha: date,
-        hora: time, // <-- NUEVO CAMPO
+        hora: time,
         subtotal: subtotal,
         descuento: discount,
         igv: igvAmount,
@@ -225,8 +228,6 @@ const Cotizador = () => {
             Datos Generales
           </h2>
           <div className="grid grid-cols-3 gap-4">
-            {" "}
-            {/* Cambiado a 3 columnas para la hora */}
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase">
                 N° Cotización
@@ -250,8 +251,6 @@ const Cotizador = () => {
               />
             </div>
             <div>
-              {" "}
-              {/* NUEVO CAMPO HORA */}
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Hora
               </label>
@@ -481,7 +480,7 @@ const Cotizador = () => {
             tipoDocumento="COTIZACIÓN"
             numeroDocumento={`CYRE-${quoteNumber}`}
             fecha={date.split("-").reverse().join("/")}
-            hora={time} // <-- PASAMOS LA HORA AL PDF
+            hora={time}
             cliente={client}
             items={items.map((i) => ({
               ...i,
@@ -498,7 +497,6 @@ const Cotizador = () => {
         </div>
       </div>
 
-      {/* Generador de PDF invisible para la descarga automática */}
       {cotizacionParaPdf && (
         <PdfGenerator cotizacion={cotizacionParaPdf} autoDownload={true} />
       )}

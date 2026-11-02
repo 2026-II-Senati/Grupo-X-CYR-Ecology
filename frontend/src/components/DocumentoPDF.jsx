@@ -11,20 +11,18 @@ const DocumentoPDF = ({
   descuento = 0,
   igv = 0,
   total = 0,
-  logoUrl = "/logo.jpeg", // Valor por defecto para el logo
-  firmaUrl = "/firma.jpeg", // Valor por defecto para la firma
+  logoUrl = "/logo.jpeg",
+  firmaUrl = "/firma.jpeg",
 }) => {
   return (
     <div
       className="bg-white text-gray-800"
       style={{
-        width: "210mm",
-        minHeight: "297mm",
-        maxHeight: "297mm",
-        padding: "10mm 15mm",
+        width: "100%",
+        // QUITAMOS minHeight aquí. Dejamos que el contenido fluya.
+        padding: "10mm",
         boxSizing: "border-box",
         fontFamily: "Arial, sans-serif",
-        overflow: "hidden",
         display: "flex",
         flexDirection: "column",
       }}
